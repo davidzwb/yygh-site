@@ -4,38 +4,40 @@
 <template>
   <!-- header -->
   <div class="nav-container page-component">
-    <!--左侧导航 #start --> 
+    <!--左侧导航 #start -->
     <div class="nav left-nav">
       <div class="nav-item selected">
         <span
           class="v-link selected dark"
-          :onclick="'javascript:window.location=\'/hospital/'+hospital.hoscode+'\''"
+          :onclick="'javascript:window.location=\'/hospital/' + hospital.hoscode + '\''"
         >预约挂号 </span>
-      </div> <div class="nav-item ">
+      </div>
+      <div class="nav-item ">
         <span
           class="v- link clickable dark"
-          :onclick="'javascript:window.location=\'/hospital/detail/'+hospital.hoscode+'\''"
+          :onclick="'javascript:window.location=\'/hospital/detail/' + hospital.hoscode + '\''"
         > 医院详情 </span>
-      </div> <div class="nav-item">
+      </div>
+      <div class="nav-item">
         <span
           class="v- link clickable dark"
-          :onclick="'javascript:window.location=\'/hospital/notice/'+hospital.hoscode+'\''"
+          :onclick="'javascript:window.location=\'/hospital/notice/' + hospital.hoscode + '\''"
         > 预约须知 </span>
-      </div> <div class="nav-item ">
+      </div>
+      <div class="nav-item ">
         <span class="v-link clickable dark"> 停诊信息 </span>
-      </div> <div class="nav-item ">
+      </div>
+      <div class="nav-item ">
         <span class="v-link clickable dark"> 查询/取消 </span>
       </div>
-    </div> 
+    </div>
     <!-- 左侧导航 #end -->
     <!-- 右侧内容 #start -->
     <div class="page-container">
       <div class="hospital-home">
         <div class="common-header">
           <div class="title-wrapper">
-            <span
-              class="hospital-title"
-            >{{ hospital.hosname }}</span>
+            <span class="hospital-title">{{ hospital.hosname }}</span>
             <div class="icon-wrapper">
               <span class="iconfont"></span>{{ hospital.param.hostypeString }}
             </div>
@@ -44,7 +46,7 @@
         <div class="info-wrapper">
           <img
             class="hospital-img"
-            :src="hospital.logoData == null? null : 'data:image/jpeg;base64,' + hospital.logoData"
+            :src="hospital.logoData == null ? null : 'data:image/jpeg;base64,' + hospital.logoData"
             :alt="hospital.hosname"
           >
           <div class="content-wrapper">
@@ -97,11 +99,11 @@
                 >
                   <div class="el-scrollbar__view">
                     <div
-                      v-for="(item,index) in departmentVoList"
+                      v-for="(item, index) in departmentVoList"
                       :key="item.id"
                       class="sub-item"
                       :class="index == activeIndex ? 'selected' : ''"
-                      @click="move(index,item.depcode)"
+                      @click="move(index, item.depcode)"
                     >
                       {{ item.depname }}
                     </div>
@@ -124,7 +126,7 @@
           </div>
           <div class="sub-dept-container">
             <div
-              v-for="(item,index) in departmentVoList"
+              v-for="(item, index) in departmentVoList"
               :id="item.depcode"
               :key="item.id"
               :class="index == 0 ? 'selected' : ''"
@@ -158,6 +160,8 @@ import '~/assets/css/hospital_personal.css'
 import '~/assets/css/hospital.css'
 
 import hospitalApi from '@/api/hosp'
+import cookie from 'js-cookie'
+import userInfoApi from '@/api/userInfo'
 
 export default {
   data() {
@@ -168,8 +172,8 @@ export default {
       hospital: {
         param: {}
       },
-      bookingRule : {},
-      departmentVoList : []
+      bookingRule: {},
+      departmentVoList: []
     }
   },
   created() {
@@ -195,7 +199,22 @@ export default {
     },
 
     schedule(depcode) {
-      window.location.href = '/hospital/schedule?hoscode=' + this.hoscode + "&depcode="+ depcode
+      // 登录判断
+      let token = cookie.get('token')
+      if (!token) {
+        window.loginEvent.$emit('loginDialogEvent')
+        return
+      }
+      //判断认证
+      userInfoApi.getUserInfo().then(response => {
+        let authStatus = response.data.authStatus
+        // 状态为2认证通过
+        if (!authStatus || authStatus != 2) {
+          window.location.href = '/user'
+          return
+        }
+      })
+      window.location.href = '/hospital/schedule?hoscode=' + this.hoscode + "&depcode=" + depcode
     }
   }
 }
